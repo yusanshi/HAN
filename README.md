@@ -34,7 +34,7 @@ sort -u MIND/train/news.tsv MIND/val/news.tsv -o news_merged.tsv
 
 # Split it
 shuf news_merged.tsv -o news_shuffled.tsv
-split -l $[ $(wc -l news_shuffled.tsv | cut -d" " -f1) * 90 / 100 ] news_shuffled.tsv
+split -l $[ $(wc -l news_shuffled.tsv | cut -d" " -f1) * 80 / 100 ] news_shuffled.tsv
 mkdir train
 mv xaa train/news_split.tsv
 mkdir test

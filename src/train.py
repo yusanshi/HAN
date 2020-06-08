@@ -166,5 +166,5 @@ def time_since(since):
 
 if __name__ == '__main__':
     print('Using device:', device)
-    torch.manual_seed(0)
+    # torch.manual_seed(0)
     train()

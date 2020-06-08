@@ -8,7 +8,7 @@ for i in {0..3}; do
             for connect_hidden in 0 1; do
                 for aggregate_mode in attention last_hidden average max; do
                     export LOAD_CHECKPOINT=0
-                    export REMARK=hierarchical_${hierarchical}_pack_gru_${pack_gru}_connect_hidden_${connect_hidden}_aggregate_mode_${aggregate_mode}
+                    export REMARK=${i}_hierarchical_${hierarchical}_pack_gru_${pack_gru}_connect_hidden_${connect_hidden}_aggregate_mode_${aggregate_mode}
                     export HIERARCHICAL=$hierarchical
                     export PACK_GRU=$pack_gru
                     export CONNECT_HIDDEN=$connect_hidden

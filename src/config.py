@@ -5,16 +5,16 @@ class Config():
     target = 'category'
     assert target in ['category', 'subcategory']
 
-    num_batches = 3200  # Number of batches to train
+    num_batches = 4800  # Number of batches to train
     num_batches_show_loss = 50  # Number of batchs to show loss
     # Number of batchs to check metrics on validation dataset
-    num_batches_validate = 100
-    num_batches_save_checkpoint = 400
+    num_batches_validate = 200
+    num_batches_save_checkpoint = 800
     batch_size = 64
     learning_rate = 0.1
     momentum = 0.9
     l2_regularization = 0.0001
-    validation_proportion = 0.1
+    validation_proportion = 0.2
     num_workers = 4  # Number of workers for data loading
     # Whether try to load checkpoint
     load_checkpoint = os.environ['LOAD_CHECKPOINT'] == '1' if 'LOAD_CHECKPOINT' in os.environ else True
