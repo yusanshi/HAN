@@ -1,19 +1,16 @@
 import os
 
 
-class Config():
+class Config:
     target = 'category'
     assert target in ['category', 'subcategory']
 
-    num_batches = 4800  # Number of batches to train
+    num_batches = 3000  # Number of batches to train
     num_batches_show_loss = 50  # Number of batchs to show loss
     # Number of batchs to check metrics on validation dataset
-    num_batches_validate = 200
-    num_batches_save_checkpoint = 800
+    num_batches_validate = 100
     batch_size = 64
-    learning_rate = 0.1
-    momentum = 0.9
-    l2_regularization = 0.0001
+    learning_rate = 0.001
     validation_proportion = 0.2
     num_workers = 4  # Number of workers for data loading
     # Whether try to load checkpoint
@@ -23,9 +20,9 @@ class Config():
     num_words_a_news = 100  # used when not hierarchical
     word_freq_threshold = 3
     # Modify the following by the output of `src/dataprocess.py`
-    num_words = 1 + 33610
-    num_categories = 18
-    num_subcategories = 266
+    num_words = 1 + 31752
+    num_categories = 17
+    num_subcategories = 256
     word_embedding_dim = 300
     word_gru_hidden_size = 100
     word_query_vector_dim = 200

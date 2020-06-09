@@ -3,7 +3,6 @@ from torch.utils.tensorboard import SummaryWriter
 from dataset import HANDataset
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import time
 import numpy as np
 from config import Config
@@ -13,9 +12,31 @@ from pathlib import Path
 from evaluate import evaluate
 import datetime
 from model.HAN import HAN
-from dataset import HANDataset
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+
+class EarlyStopping:
+    def __init__(self, patience=4):
+        self.patience = patience
+        self.counter = 0
+        self.best_loss = np.Inf
+
+    def __call__(self, val_loss):
+        if val_loss < self.best_loss:
+            early_stop = False
+            get_better = True
+            self.counter = 0
+            self.best_loss = val_loss
+        else:
+            get_better = False
+            self.counter += 1
+            if self.counter >= self.patience:
+                early_stop = True
+            else:
+                early_stop = False
+
+        return early_stop, get_better
 
 
 def latest_checkpoint(directory):
@@ -66,10 +87,7 @@ def train():
                    drop_last=True))
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(model.parameters(),
-                                lr=Config.learning_rate,
-                                momentum=Config.momentum,
-                                weight_decay=Config.l2_regularization)
+    optimizer = torch.optim.Adam(model.parameters(), lr=Config.learning_rate)
     start_time = time.time()
     loss_full = []
     exhaustion_count = 0
@@ -85,6 +103,8 @@ def train():
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
             step = checkpoint['step']
             model.train()
+
+    early_stopping = EarlyStopping()
 
     with tqdm(total=Config.num_batches, desc="Training") as pbar:
         for i in range(1, Config.num_batches + 1):
@@ -116,14 +136,6 @@ def train():
 
             writer.add_scalar('Train/Loss', loss.item(), step)
 
-            if i % Config.num_batches_save_checkpoint == 0:
-                torch.save(
-                    {
-                        'model_state_dict': model.state_dict(),
-                        'optimizer_state_dict': optimizer.state_dict(),
-                        'step': step
-                    }, f"./checkpoint/ckpt-{step}.pth")
-
             if i % Config.num_batches_show_loss == 0:
                 tqdm.write(
                     f"Time {time_since(start_time)}, batches {i}, current loss {loss.item():.4f}, average loss: {np.mean(loss_full):.4f}"
@@ -131,28 +143,32 @@ def train():
 
             if i % Config.num_batches_validate == 0:
                 model.eval()
-                eval_loss, report = evaluate(model, val_dataset)
+                val_loss, val_report = evaluate(model, val_dataset)
                 model.train()
-                precision = report['weighted avg']['precision']
-                recall = report['weighted avg']['recall']
-                f1 = report['weighted avg']['f1-score']
-                writer.add_scalar('Validation/loss', eval_loss, step)
+                precision = val_report['weighted avg']['precision']
+                recall = val_report['weighted avg']['recall']
+                f1 = val_report['weighted avg']['f1-score']
+                writer.add_scalar('Validation/loss', val_loss, step)
                 writer.add_scalar('Validation/precision', precision, step)
                 writer.add_scalar('Validation/recall', recall, step)
                 writer.add_scalar('Validation/F1', f1, step)
                 tqdm.write(
-                    f"Time {time_since(start_time)}, batches {i}, validation loss: {eval_loss:.4f}, validation precision: {precision:.4f}, validation recall: {recall:.4f}, validation F1: {f1:.4f}"
+                    f"Time {time_since(start_time)}, batches {i}, validation loss: {val_loss:.4f}, validation precision: {precision:.4f}, validation recall: {recall:.4f}, validation F1: {f1:.4f}"
                 )
 
-            pbar.update(1)
+                early_stop, get_better = early_stopping(val_loss)
+                if early_stop:
+                    tqdm.write('Early stop.')
+                    break
+                elif get_better:
+                    torch.save(
+                        {
+                            'model_state_dict': model.state_dict(),
+                            'optimizer_state_dict': optimizer.state_dict(),
+                            'step': step
+                        }, f"./checkpoint/ckpt-{step}.pth")
 
-    if Config.num_batches % Config.num_batches_save_checkpoint != 0:
-        torch.save(
-            {
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'step': step
-            }, f"./checkpoint/ckpt-{step}.pth")
+            pbar.update(1)
 
 
 def time_since(since):

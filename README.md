@@ -24,7 +24,7 @@ rm glove.840B.300d.zip
 
 # Download MIND-small dataset
 # By downloading the dataset, you agree to the [Microsoft Research License Terms](https://go.microsoft.com/fwlink/?LinkID=206977). For more detail about the dataset, see https://msnews.github.io/.
-wget https://mind201910small.blob.core.windows.net/release/MINDsmall_train.zip https://mind201910small.blob.core.windows.net/release/MINDsmall_val.zip
+wget https://mind201910small.blob.core.windows.net/release/MINDsmall_train.zip https://mind201910small.blob.core.windows.net/release/MINDsmall_dev.zip
 mkdir MIND
 unzip MINDsmall_train.zip -d MIND/train
 unzip MINDsmall_dev.zip -d MIND/val
